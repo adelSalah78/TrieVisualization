@@ -1,0 +1,96 @@
+<html>
+	<head>
+	</head>
+	<body>
+		<input id="insertTxt" type="text">
+		<button id="addBtn" onclick="addWordHandler()">Add Word</button>
+		<button id="searchBtn" onclick="addsearchHandler()">Search for a word</button>
+		<br/>
+		<div id="start">
+		</div>
+		<div id="result">
+		</div>
+		<script type="text/javascript">
+		var Trie = function() {
+			this.currentState = {};
+			this.addWord = function (word) {
+				this.addRecursively(word, this.currentState, 0);
+			}
+			
+			this.draw = function(index, word) {
+				if (index >= word.length)
+					return;
+				let element = document.getElementById(index);
+				if (element) {
+					if (!document.getElementById(index + "_" + word.charAt(index))) {
+						element.innerHTML += `<div style="color:white;background-color:${index === word.length-1 ? "blue" : "green"};display:inline-block;width: 60px;margin-right:10px;margin-bottom:10px;" id=${index}_${word.charAt(index)}>${word.charAt(index)}</div>`
+					}
+				} else {
+					document.getElementById('start').innerHTML += `<div id=${index}><div style="color:white;margin-right:10px;margin-bottom:10px;background-color:${index === word.length-1 ? "blue" : "green"};display:inline-block;width: 60px;" id=${index}_${word.charAt(index)}>${word.charAt(index)}</div></div>`;
+				}
+			}
+			
+			this.addRecursively = function(word,obj,index) {
+				this.draw(index, word);
+				if(index >= word.length)
+					return;
+				if(index === word.length - 1)
+					obj[word.charAt(index)] = {leaf: true};
+				else if(!obj[word.charAt(index)])
+					obj[word.charAt(index)] = {};
+				this.addRecursively(word, obj[word.charAt(index)], index + 1);
+			}
+			
+			this.search = function(word) {
+				let levelObj = this.currentState[word.charAt(0)];
+				if(!levelObj) {
+					return false;
+				}
+				let result = false;
+				let i=1;
+				let waitTime = 500;
+				for(;i<word.length + 1 && levelObj;i++) {
+					result = levelObj.leaf ? true : false;
+					setTimeout((i) => {
+						let bgColor = document.getElementById((i-1) + "_" + word.charAt(i-1)).style.backgroundColor;
+						document.getElementById((i-1) + "_" + word.charAt(i-1)).style.backgroundColor = "red";
+						setTimeout ((i) => {
+							document.getElementById((i-1) + "_" + word.charAt(i-1)).style.backgroundColor = bgColor;
+						}, 500, i);
+					}, waitTime, i);
+					levelObj = levelObj[word.charAt(i)];
+					waitTime+=500;
+				}
+				if (i< word.length + 1)
+					result = false;
+				return result;
+			}
+		}
+		</script>
+
+
+		<script type="text/javascript">	
+			var t = new Trie();
+			function addWordHandler() {
+				let word = document.getElementById('insertTxt').value;
+				if(!word.trim()) {
+					alert('please insert word!');
+					document.getElementById('insertTxt').value = "";
+					return;
+				}
+				t.addWord(word.trim());
+				document.getElementById('insertTxt').value = "";
+			}
+			
+			function addsearchHandler() {
+				let word = document.getElementById('insertTxt').value;
+				if(!word.trim()) {
+					alert('please insert word!');
+					document.getElementById('insertTxt').value = "";
+					return;
+				}
+				document.getElementById("result").innerHTML = t.search(word);
+			}
+		</script>
+	</body>
+</html>
