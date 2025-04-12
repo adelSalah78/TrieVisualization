@@ -25,13 +25,13 @@
 				let element = document.getElementById(index);
 				if (element) {
 					if (!document.getElementById(index + "_" + word.charAt(index))) {
-						element.innerHTML += `<div style="color:white;background-color:${index === word.length-1 ? "blue" : "green"};display:inline-block;width: 60px;margin-right:10px;margin-bottom:10px;" id=${index}_${word.charAt(index)}>${word.charAt(index)}</div>`
+						element.innerHTML += `<div style="color:white;background-color:${index === word.length-1 ? "blue" : "green"};display:inline-block;width: 60px;margin-right:25px;margin-bottom:25px;" id=${index}_${word.charAt(index)}>${word.charAt(index)}</div>`
 					} else {
 						if (document.getElementById(index + "_" + word.charAt(index)).style.backgroundColor !== "blue")
 							document.getElementById(index + "_" + word.charAt(index)).style.backgroundColor = index === word.length-1 ? "blue": "green";
 					}
 				} else {
-					document.getElementById('start').innerHTML += `<div id=${index}><div style="color:white;margin-right:10px;margin-bottom:10px;background-color:${index === word.length-1 ? "blue" : "green"};display:inline-block;width: 60px;" id=${index}_${word.charAt(index)}>${word.charAt(index)}</div></div>`;
+					document.getElementById('start').innerHTML += `<div id=${index}><div style="color:white;margin-right:25px;margin-bottom:25px;background-color:${index === word.length-1 ? "blue" : "green"};display:inline-block;width: 60px;" id=${index}_${word.charAt(index)}>${word.charAt(index)}</div></div>`;
 				}
 				if (index > 0) {
 					this.drawLine(document.getElementById((index - 1) + "_" + word.charAt(index - 1)), document.getElementById(index + "_" + word.charAt(index)));
