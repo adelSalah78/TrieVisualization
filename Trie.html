@@ -3,16 +3,16 @@
 	</head>
 	<body>
 		<svg id="svg" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></svg>
+		<textarea id="sora" style="height:30%;width:80%"></textarea>
+		<button id="soraBtn" onclick="addSoraHandler()">إضافة السور(من الفاتحة إلى الكهف)</button>
+		<br/><br/><br/>
 		<input id="insertTxt" type="text">
-		<button id="addBtn" style="display:none" onclick="addWordHandler()">Add Word</button>
-		<button id="searchBtn" style="display:none" onclick="addsearchHandler()">Search for a word</button>
+		<button id="searchsoraBtn" onclick="searchSoraHandler()">بحث عن  الكلمة</button>
+		<button id="addBtn" style="display:none" onclick="addWordHandler()">إضافة السور(من الفاتحة إلى الكهف)</button>
+		<button id="searchBtn" style="display:none" onclick="addsearchHandler()">بحث عن  الكلمة</button>
 		<div id="result">
 			result will be here (true or false)
 		</div>
-		<br/>
-		<textarea id="sora"></textarea>
-		<button id="soraBtn" onclick="addSoraHandler()">Add Sora words</button>
-		<button id="searchsoraBtn" onclick="searchSoraHandler()">Search for word in Sora</button>
 		<br/>
 		<div id="start">
 		</div>
@@ -25,6 +25,7 @@
 			this.currentState = {};
 			this.currentVerseNumber = 0;
 			this.currentVerseText = "";
+			this.currentSurah = "";
 			this.addWord = function (word,isDraw) {
 				this.addRecursively(word, this.currentState, 0, isDraw);
 			}
@@ -56,15 +57,16 @@
 				if(index === word.length - 1) {
 					!obj[word.charAt(index)] ? obj[word.charAt(index)] = {leaf: true} : obj[word.charAt(index)]["leaf"] = true;
 					if(!obj[word.charAt(index)]["verseNumber"]) {
-						obj[word.charAt(index)]["verseNumber"] = [parseInt(t.currentVerseNumber) + 1];
+						obj[word.charAt(index)]["verseNumber"] = [parseInt(this.currentVerseNumber) + 1];
 					} else {
-						obj[word.charAt(index)]["verseNumber"].push(parseInt(t.currentVerseNumber) + 1);
+						obj[word.charAt(index)]["verseNumber"].push(parseInt(this.currentVerseNumber) + 1);
 					}
 				}
 				else if(!obj[word.charAt(index)])
 					obj[word.charAt(index)] = {};
 				this.addRecursively(word, obj[word.charAt(index)], index + 1);
-				// console.log(JSON.stringify(this.currentState));
+				//if (index === word.length - 1)
+					//console.log(JSON.stringify(this.currentState));
 			}
 			
 			this.search = function(word, isDraw) {
@@ -76,11 +78,11 @@
 				let i=1;
 				let waitTime = 500;
 				for(;i<word.length + 1 && levelObj;i++) {
-					result = levelObj.leaf ? true : false;
+					result = levelObj.leaf && i === word.length ? true : false;
 					if(result) {
-						document.getElementById('verses').innerHTML = "";
+						//document.getElementById('verses').innerHTML = "";
 						for(let i=0;i<levelObj.verseNumber.length;i++) {
-							document.getElementById('verses').innerHTML += '<li>' + verses[levelObj.verseNumber[i]] + '(' + levelObj.verseNumber[i] + ')' + '</li>'
+							document.getElementById('verses').innerHTML += '<li>' + verses[this.currentSurah][levelObj.verseNumber[i]] + '(' + levelObj.verseNumber[i] + ') سورة ' + this.currentSurah + '</li>'
 						}
 					}
 					if (isDraw) {
@@ -95,8 +97,8 @@
 					}
 					levelObj = levelObj[word.charAt(i)];
 				}
-				if (i< word.length + 1)
-					result = false;
+				//if (i< word.length + 1)
+					//result = false;
 				return result;
 			}
 			this.drawLine = function (fromEl, toEl) {
@@ -123,6 +125,7 @@
 
 
 		<script type="text/javascript">	
+			var tries = [];
 			var t = new Trie();
 			var verses = {};
 			function addWordHandler() {
@@ -149,27 +152,44 @@
 					document.getElementById('insertTxt').value = "";
 					return;
 				}
-				document.getElementById("result").innerHTML = t.search(word, true);
+				document.getElementById("result").innerHTML = "";
+				for(let i=0;i<tries.length;i++) {
+					document.getElementById("result").innerHTML += tries[i].search(word, true);
+				}
 			}
 			function addSoraHandler() {
 				document.getElementById('addBtn').style.display = "none";
 				document.getElementById('searchBtn').style.display = "none";
 				
-				let fullSoraWords = document.getElementById('sora').value.split(" ");
-				if(fullSoraWords && fullSoraWords.length > 0) {
-					let verseText = "";
-					for(let i=0;i<fullSoraWords.length;i++) {
-						if(fullSoraWords[i].startsWith("(")) {
-							t.currentVerseNumber = fullSoraWords[i].substring(1,fullSoraWords[i].length - 1);
-							verses[t.currentVerseNumber] = verseText;
-							verseText = "";
-							continue;
+				let fullSorasWords = document.getElementById('sora').value.split("\n");
+				if(fullSorasWords && fullSorasWords.length > 0) {
+					for(let j=0;j<fullSorasWords.length;j++){
+						let fullSoraWords = fullSorasWords[j].split(" ");
+						let verseText = "";
+						if(fullSoraWords.length > 0) {
+							let soraTrieInstance = new Trie();
+							for(let i=0;i<fullSoraWords.length;i++) {
+								if(fullSoraWords[i].startsWith("#")) {
+									soraTrieInstance.currentSurah = fullSoraWords[i].substring(1,fullSoraWords[i].length - 1);
+									verses[soraTrieInstance.currentSurah] = {};
+									console.log(soraTrieInstance.currentSurah);
+									continue;
+								}
+								else if(fullSoraWords[i].startsWith("(")) {
+									soraTrieInstance.currentVerseNumber = fullSoraWords[i].substring(1,fullSoraWords[i].length - 1);
+									verses[soraTrieInstance.currentSurah][soraTrieInstance.currentVerseNumber] = verseText;
+									verseText = "";
+									continue;
+								}
+								verseText += fullSoraWords[i] + " ";
+								soraTrieInstance.addWord(normalizeQuranWord(fullSoraWords[i]), false);
+							}
+							tries.push(soraTrieInstance);
 						}
-						verseText += fullSoraWords[i] + " ";
-						t.addWord(normalizeQuranWord(fullSoraWords[i]), false);
 					}
 				}
 				alert('done');
+				console.log(tries);
 			}
 			
 			function searchSoraHandler() {
@@ -182,7 +202,15 @@
 					document.getElementById('insertTxt').value = "";
 					return;
 				}
-				document.getElementById("result").innerHTML = t.search(word, false);
+				document.getElementById("result").innerHTML = "";
+				document.getElementById("verses").innerHTML = "";
+				let result = false;
+				for(let i=0;i<tries.length;i++) {
+					if(tries[i].search(word, false)) {
+						result = true;
+					} 
+				}
+				document.getElementById("result").innerHTML = result;
 			}
 			
 			function removeTashkeel(text) {
