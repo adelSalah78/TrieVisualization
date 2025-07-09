@@ -10,6 +10,7 @@
 		<button id="searchsoraBtn" onclick="searchSoraHandler()">بحث عن  الكلمة</button>
 		<button id="addBtn" style="display:none" onclick="addWordHandler()">إضافة السور(من الفاتحة إلى الكهف)</button>
 		<button id="searchBtn" style="display:none" onclick="addsearchHandler()">بحث عن  الكلمة</button>
+		<button id="autoComplete" onclick="testAutoComplete()">Test Auto Complete</button>
 		<div id="result">
 			result will be here (true or false)
 		</div>
@@ -120,6 +121,49 @@
 			  line.setAttribute("stroke-width", "2");
 			  svg.appendChild(line);
 			}
+			
+			this.autoSuggest = function(word) {
+				let result = [];
+				let levelObj = this.currentState[word.charAt(0)];
+				if(!levelObj) {
+					return [];
+				}
+				let i=1;
+				for(;i<word.length;i++) {
+					if(!levelObj[word.charAt(i)])
+						return [];
+					levelObj = levelObj[word.charAt(i)];
+				}
+				let bfLevel = Object.keys(levelObj);
+				let suggestions = [];
+
+				for(let i=0;i<bfLevel.length;i++) {
+					// console.log(`upper level key is ${bfLevel[i]} and object is ${JSON.stringify(levelObj[bfLevel[i]])}`);
+					let suggestedWord = word.split("");
+					suggestedWord.push(bfLevel[i]);
+					this.iterateSuggestions(levelObj[bfLevel[i]],[...suggestedWord],suggestions);
+				}
+				suggestions.forEach(s => console.log(s.join("")));
+			}
+
+			this.iterateSuggestions = function(tree,suggestedWord,suggestions) {
+				let keys = Object.keys(tree);
+				if(tree['leaf']) {
+					suggestions.push(suggestedWord);
+					if(Object.keys(tree) && Object.keys(tree).length > 2) {
+						for(let i=2;i<keys.length;i++) {
+							this.iterateSuggestions(tree[keys[i]],[...suggestedWord,keys[i]],suggestions);
+						}
+					}
+					return;
+				}
+				for(let i=0;i<keys.length;i++) {
+					// console.log(`lower level key is ${keys[i]} and object is ${JSON.stringify(tree[keys[i]])}`);
+					// if(!tree[keys[i]]['leaf'])
+					// suggestedWord.push(keys[i]);
+					this.iterateSuggestions(tree[keys[i]],[...suggestedWord,keys[i]],suggestions);
+				}
+			}
 		}
 		</script>
 
@@ -128,6 +172,11 @@
 			var tries = [];
 			var t = new Trie();
 			var verses = {};
+			function testAutoComplete() {
+				for(let i=0;i<tries.length;i++) {
+					tries[i].autoSuggest(document.getElementById('insertTxt').value);
+				}
+			}
 			function addWordHandler() {
 				document.getElementById('soraBtn').style.display = "none";
 				document.getElementById('searchsoraBtn').style.display = "none";
