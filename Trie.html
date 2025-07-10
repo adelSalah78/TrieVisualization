@@ -6,11 +6,14 @@
 		<textarea id="sora" style="height:30%;width:80%"></textarea>
 		<button id="soraBtn" onclick="addSoraHandler()">إضافة سور القرآن</button>
 		<br/><br/><br/>
-		<input id="insertTxt" type="text">
+		<input id="insertTxt" type="text" list="suggestions">
+		<datalist id="suggestions">
+			<!-- Options will be populated by JavaScript -->
+		  </datalist>
 		<button id="searchsoraBtn" onclick="searchSoraHandler()">بحث عن  الكلمة</button>
 		<button id="addBtn" style="display:none" onclick="addWordHandler()">إضافة السور(من الفاتحة إلى الكهف)</button>
 		<button id="searchBtn" style="display:none" onclick="addsearchHandler()">بحث عن  الكلمة</button>
-		<button id="autoComplete" onclick="testAutoComplete()">Test Auto Complete</button>
+		<!-- <button id="autoComplete" onclick="testAutoComplete()">Test Auto Complete</button> -->
 		<div id="result">
 			result will be here (true or false)
 		</div>
@@ -123,6 +126,8 @@
 			}
 			
 			this.autoSuggest = function(word) {
+				if(!word)
+					return [];
 				let result = [];
 				let levelObj = this.currentState[word.charAt(0)];
 				if(!levelObj) {
@@ -143,7 +148,8 @@
 					suggestedWord.push(bfLevel[i]);
 					this.iterateSuggestions(levelObj[bfLevel[i]],[...suggestedWord],suggestions);
 				}
-				suggestions.forEach(s => console.log(s.join("")));
+
+				return suggestions.map(item => item.join(""));
 			}
 
 			this.iterateSuggestions = function(tree,suggestedWord,suggestions) {
@@ -172,10 +178,26 @@
 			var tries = [];
 			var t = new Trie();
 			var verses = {};
+			var input = document.getElementById('insertTxt');
+
+			input.addEventListener('input', function () {
+				document.getElementById('suggestions').innerHTML = "";
+				testAutoComplete();
+  			});
+
 			function testAutoComplete() {
+				const datalist = document.getElementById('suggestions');
+				const allSuggestions = [];
 				for(let i=0;i<tries.length;i++) {
-					tries[i].autoSuggest(document.getElementById('insertTxt').value);
+					tries[i].autoSuggest(document.getElementById('insertTxt').value).forEach(suggestion => {
+						allSuggestions.push(suggestion);
+					});
 				}
+				[...new Set(allSuggestions)].forEach(suggestion => {
+					const option = document.createElement('option');
+        			option.value = suggestion;
+        			datalist.appendChild(option);
+				});
 			}
 			function addWordHandler() {
 				document.getElementById('soraBtn').style.display = "none";
